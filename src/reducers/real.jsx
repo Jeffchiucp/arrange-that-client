@@ -4,7 +4,7 @@ import {
     ITEM_RENAME,
     CONTAINER_ADD,
     CONTAINER_DELETE,
-    CONTAINER_RENAME,
+    CONTAINER_EDIT,
     SET_REAL_DATA,
     ARRANGEMENT_RENAME,
     SET_UNASSIGNED_ITEMS,
@@ -51,7 +51,7 @@ function exportState (real) {
 const realReducer = (state = initialState, action) => {
     switch (action.type) {
         case ITEM_ADD: {
-            // Add item to global item list
+        // Add item to global item list
             const addItemState = {
                 ...state,
                 items: [
@@ -78,7 +78,7 @@ const realReducer = (state = initialState, action) => {
 
             // Remove item from all snapshots
             for (let snapshot of deleteItemState.snapshots) {
-                // Remove item from all containers in snapshot
+            // Remove item from all containers in snapshot
                 for (let container of snapshot.snapshotContainers) {
                     container = container.items.filter(ele => ele !== action.id)
                 }
@@ -106,7 +106,7 @@ const realReducer = (state = initialState, action) => {
         }
 
         case CONTAINER_ADD: {
-            // Add container to global
+        // Add container to global
             const addContainerState = {
                 ...state,
                 containers: [
@@ -114,7 +114,6 @@ const realReducer = (state = initialState, action) => {
                     action.container
                 ]
             }
-            
             // Add container to all snapshots
             for (let snapshot of addContainerState.snapshots) {
                 snapshot.snapshotContainers.push({_id: action.container._id, items: []})
@@ -142,19 +141,14 @@ const realReducer = (state = initialState, action) => {
             exportState(deleteContainerState)
             return deleteContainerState
         }
-            
-        case CONTAINER_RENAME: {
-            let containers = state.containers
-            let container = containers.find(ele => ele._id === action.container._id)
+
+        case CONTAINER_EDIT: {
+            const container = state.containers.find(ele => ele && ele._id === action.container._id)
             container.name = action.container.name
-            containers = containers.filter(ele => ele._id !== action.containers._id)
-            
+            container.size = action.container.size
+
             const resultContainerRename = {
-                ...state,
-                containers: [
-                    ...containers,
-                    container
-                ]
+                ...state
             }
             exportState(resultContainerRename)
             return resultContainerRename
@@ -164,6 +158,7 @@ const realReducer = (state = initialState, action) => {
             exportState(action.data)
             return action.data
         }
+        
 
         case SET_UNASSIGNED_ITEMS: {
             const setUnassignedState = {
@@ -171,7 +166,7 @@ const realReducer = (state = initialState, action) => {
             }
             const index = getSnapshotIndex(setUnassignedState, action.snapshotId)
             setUnassignedState.snapshots[index].unassigned = action.unassigned
-                
+            
             exportState(setUnassignedState)
             return setUnassignedState
         }
@@ -213,14 +208,14 @@ const realReducer = (state = initialState, action) => {
             return snapshotDeleteState
         }
 
-        case ARRANGEMENT_RENAME: {
+        case ARRANGEMENT_RENAME:
             const arrangementRenameState = {
                 ...state,
                 name: action.name
             }
             exportState(arrangementRenameState)
             return arrangementRenameState
-        }
+
 
         case SNAPSHOT_RENAME: {
             const snapshotRenameState = {

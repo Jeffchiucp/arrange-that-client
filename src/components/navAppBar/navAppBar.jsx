@@ -37,6 +37,10 @@ class NavAppBar extends Component {
         this.props.history.push("/all_arrangements")
     }
 
+    goToFeedback = () => {
+        this.props.history.push("/feedback")
+    }
+
     createNewArrangement = () => {
         var d = new Date()
         const arrangement_id = uuid("arrangement")
@@ -51,7 +55,7 @@ class NavAppBar extends Component {
             owner: this.props.account.user.googleId,
             snapshots: [{
                 _id: uuid("snapshot"),
-                name: "Version 1",
+                name: "Snapshot 1",
                 snapshot: {}, // TO REMOVE after it is removed on backend
                 snapshotContainers: [],
                 unassigned: []
@@ -103,6 +107,9 @@ class NavAppBar extends Component {
                     </Button>
                     <Button onClick={this.goToViewAllArrangements} color="inherit">
                         View All
+                    </Button>
+                    <Button onClick={this.goToFeedback} color="inherit">
+                        Feedback
                     </Button>
                     <Button onClick={this.logout} color="inherit">
                         Logout

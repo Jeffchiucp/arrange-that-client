@@ -1,21 +1,22 @@
 import React, { Component } from 'react'
 
 import { connect } from 'react-redux'
+import cloneDeep from 'lodash/cloneDeep';
 
 import { Grid, Typography } from '@material-ui/core'
 import Snapshot from 'containers/snapshot/snapshot'
 
+import EditArrangementTitle from 'components/editArrangementTitle/editArrangementTitle'
 import ExportButton from 'components/exportbutton/exportbutton'
+import SnapshotTitle from 'components/snapshotTitle/snapshotTitle'
 
 import { getArrangement } from 'services/arrangementService'
 
 import { setRealData, arrangementRename } from 'actions/real/real'
-import { snapshotAdd } from 'actions/snapshot/snapshot'
+import { snapshotAdd, snapshotDelete, snapshotRename } from 'actions/snapshot/snapshot'
 import { uuid } from 'utils'
 
 import Tabs, { Tab } from 'react-awesome-tabs';
-
-import EditArrangementTitle from 'components/editArrangementTitle/editArrangementTitle'
 
 export class Arrange extends Component {
     constructor(props) {
@@ -31,12 +32,21 @@ export class Arrange extends Component {
         this.setState({activeTab: active})
     }
 
-    handleTabAdd() {
+    handleTabAdd = () => {
         const numberOfCurrentSnapshots = this.props.real.snapshots.length
         this.props.snapshotAdd(this.createNewSnapshot())
 
         this.setState({
             activeTab: numberOfCurrentSnapshots
+        });
+    }
+    
+    deleteSnapshot = (snapshotId) => {
+        this.props.snapshotDelete(snapshotId)
+        const numberOfCurrentSnapshots = this.props.real.snapshots.length
+        this.setState({
+            ...this.state,
+            activeTab: numberOfCurrentSnapshots-1,
         });
     }
 
@@ -96,12 +106,27 @@ export class Arrange extends Component {
         }
         const newSnapshot = {
             _id: uuid("snapshot"),
-            name: "Version " + (numberOfCurrentSnapshots + 1),
+            name: "Snapshot " + (numberOfCurrentSnapshots + 1),
             snapshot: newSnapshotSnapshot,
             snapshotContainers: newSnapshotContainers,
             unassigned: []
         }
         return newSnapshot
+    }
+
+    cloneSnapshot = (snapshotId) => {
+        const numberOfCurrentSnapshots = this.props.real.snapshots.length
+        const snapshotToClone = this.props.real.snapshots.find(s => s._id === snapshotId)
+        const clone = {...cloneDeep(snapshotToClone),
+            _id: uuid("snapshot"),
+            name: "Clone of " + snapshotToClone.name
+        }
+
+        this.props.snapshotAdd(clone)
+
+        this.setState({
+            activeTab: numberOfCurrentSnapshots
+        });
     }
 
     // Loads the state from the backend given the arrangement_id in the url param
@@ -147,13 +172,18 @@ export class Arrange extends Component {
                 </Grid>
                 <Tabs 
                     active={this.state.activeTab} 
-                    onTabSwitch={this.handleTabSwitch.bind(this)}
-                    onTabAdd={this.handleTabAdd.bind(this)}
+                    onTabSwitch={this.handleTabSwitch}
+                    onTabAdd={this.handleTabAdd}
                     showAdd={true}
                 >
                     {this.props.real.snapshots.map((snapshot, index) => {
                         return (
-                            <Tab key={index} title={snapshot.name}>
+                            <Tab key={index} title={
+                                <SnapshotTitle 
+                                    snapshot={snapshot} 
+                                    onDelete={this.deleteSnapshot} 
+                                    onClone={this.cloneSnapshot}
+                                    onSave={this.props.snapshotRename} /> }>
                                 <Snapshot snapshotId={snapshot._id} />
                             </Tab>
                         )
@@ -179,6 +209,12 @@ const mapDispatchToProps = (dispatch, ownProps) => {
         },
         snapshotAdd: (snapshot) => {
             dispatch(snapshotAdd(snapshot))
+        },
+        snapshotDelete: (snapshotId) => {
+            dispatch(snapshotDelete(snapshotId))
+        },
+        snapshotRename: (snapshotId, name) => {
+            dispatch(snapshotRename(snapshotId, name))
         }
     }
 }
