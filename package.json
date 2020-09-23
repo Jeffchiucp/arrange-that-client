@@ -23,7 +23,7 @@
     "react-timestamp": "^4.4.0",
     "redux": "^4.0.1",
     "redux-thunk": "^2.3.0",
-    "universal-cookie": "^3.0.7"
+    "universal-cookie": "^4.0.4"
   },
   "scripts": {
     "precommit": "eslint --ext .jsx 'src/**/*.{js,jsx}' --fix",
